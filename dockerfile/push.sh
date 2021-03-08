@@ -8,11 +8,11 @@ DOCKERFILE_2004_NIGHTLY=Dockerfile.2004.nightly
 DOCKERFILE_centos8_NIGHTLY=Dockerfile.centos8.nightly
 DOCKERFILE_fedora31_NIGHTLY=Dockerfile.fedora31.nightly
 
-IMAGE_1604_NIGHTLY=baiduxlab/sgx-rust:1604-1.1.3
-IMAGE_1804_NIGHTLY=baiduxlab/sgx-rust:1804-1.1.3
-IMAGE_2004_NIGHTLY=baiduxlab/sgx-rust:2004-1.1.3
-IMAGE_centos8_NIGHTLY=baiduxlab/sgx-rust:centos8-1.1.3
-IMAGE_fedora31_NIGHTLY=baiduxlab/sgx-rust:fedora31-1.1.3
+IMAGE_1604_NIGHTLY=baiduxlab/sgx-rust:1604-1.1.4
+IMAGE_1804_NIGHTLY=baiduxlab/sgx-rust:1804-1.1.4
+IMAGE_2004_NIGHTLY=baiduxlab/sgx-rust:2004-1.1.4
+IMAGE_centos8_NIGHTLY=baiduxlab/sgx-rust:centos8-1.1.4
+IMAGE_fedora31_NIGHTLY=baiduxlab/sgx-rust:fedora31-1.1.4
 
 push_one() {
 	docker push $1
