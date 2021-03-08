@@ -1,7 +1,7 @@
 FROM centos:8
 
 RUN dnf group install -y 'Development Tools' && \
-    dnf --enablerepo=PowerTools install -y ocaml ocaml-ocamlbuild redhat-rpm-config openssl-devel wget rpm-build git cmake perl python2 libcurl-devel protobuf-devel && \
+    dnf --enablerepo=powertools install -y ocaml ocaml-ocamlbuild redhat-rpm-config openssl-devel wget rpm-build git cmake perl python2 libcurl-devel protobuf-devel && \
     alternatives --set python /usr/bin/python2
 
 #ADD 01_gcc_8.sh /root
