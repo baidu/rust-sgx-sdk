@@ -13,7 +13,7 @@ else
     git checkout 608fe1df4c7c99433b0b8e9abdd31ba67c79ceb0 && \
     ./download_prebuilt.sh && \
     make -j "$(nproc)" sdk_install_pkg && \
-    echo -e 'no\n/opt' | ./linux/installer/bin/sgx_linux_x64_sdk_2.12.100.3.bin && \
+    echo -e 'no\n/opt' | ./linux/installer/bin/sgx_linux_x64_sdk_2.13.100.4.bin && \
     echo 'source /opt/sgxsdk/environment' >> /root/.bashrc && \
     cd /root && \
     rm -rf /root/linux-sgx
