@@ -1,6 +1,6 @@
 /* libunwind - a platform-independent unwind library
    Copyright (C) 2002, 2005 Hewlett-Packard Co
-	Contributed by David Mosberger-Tang <davidm@hpl.hp.com>
+        Contributed by David Mosberger-Tang <davidm@hpl.hp.com>
 
 This file is part of libunwind.
 
@@ -25,13 +25,13 @@ WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.  */
 
 #include "libunwind_i.h"
 
-PROTECTED void
+void
 unw_destroy_addr_space (unw_addr_space_t as)
 {
 #ifndef UNW_LOCAL_ONLY
 # if UNW_DEBUG
-    memset (as, 0, sizeof (*as));
+  memset (as, 0, sizeof (*as));
 # endif
-    free (as);
+  free (as);
 #endif
 }

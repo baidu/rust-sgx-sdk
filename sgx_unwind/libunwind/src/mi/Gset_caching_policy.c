@@ -1,6 +1,6 @@
 /* libunwind - a platform-independent unwind library
    Copyright (C) 2002, 2005 Hewlett-Packard Co
-	Contributed by David Mosberger-Tang <davidm@hpl.hp.com>
+        Contributed by David Mosberger-Tang <davidm@hpl.hp.com>
 
 This file is part of libunwind.
 
@@ -25,22 +25,22 @@ WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.  */
 
 #include "libunwind_i.h"
 
-PROTECTED int
+int
 unw_set_caching_policy (unw_addr_space_t as, unw_caching_policy_t policy)
 {
-    if (tdep_needs_initialization)
-        tdep_init ();
+  if (!tdep_init_done)
+    tdep_init ();
 
-#ifndef HAVE___THREAD
-    if (policy == UNW_CACHE_PER_THREAD)
-        policy = UNW_CACHE_GLOBAL;
+#if !(defined(HAVE___THREAD) && HAVE___THREAD)
+  if (policy == UNW_CACHE_PER_THREAD)
+    policy = UNW_CACHE_GLOBAL;
 #endif
 
-    if (policy == as->caching_policy)
-        return 0;	/* no change */
+  if (policy == as->caching_policy)
+    return 0;   /* no change */
 
-    as->caching_policy = policy;
-    /* Ensure caches are empty (and initialized).  */
-    unw_flush_cache (as, 0, 0);
-    return 0;
+  as->caching_policy = policy;
+  /* Ensure caches are empty (and initialized).  */
+  unw_flush_cache (as, 0, 0);
+  return 0;
 }

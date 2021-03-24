@@ -1,6 +1,6 @@
 /* libunwind - a platform-independent unwind library
    Copyright (C) 2002-2005 Hewlett-Packard Co
-	Contributed by David Mosberger-Tang <davidm@hpl.hp.com>
+        Contributed by David Mosberger-Tang <davidm@hpl.hp.com>
 
 This file is part of libunwind.
 
@@ -28,11 +28,11 @@ WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.  */
 HIDDEN intrmask_t unwi_full_mask;
 
 static const char rcsid[] UNUSED =
-    "$Id: " PACKAGE_STRING " --- report bugs to " PACKAGE_BUGREPORT " $";
+  "$Id: " PACKAGE_STRING " --- report bugs to " PACKAGE_BUGREPORT " $";
 
 #if UNW_DEBUG
 
-/* Must not be declared HIDDEN/PROTECTED because libunwind.so and
+/* Must not be declared HIDDEN because libunwind.so and
    libunwind-PLATFORM.so will both define their own copies of this
    variable and we want to use only one or the other when both
    libraries are loaded.  */
@@ -43,20 +43,18 @@ long unwi_debug_level;
 HIDDEN void
 mi_init (void)
 {
-#if !HAVE_SGX
 #if UNW_DEBUG
-    const char *str = getenv ("UNW_DEBUG_LEVEL");
+  const char *str = getenv ("UNW_DEBUG_LEVEL");
 
-    if (str)
-        unwi_debug_level = atoi (str);
+  if (str)
+    unwi_debug_level = atoi (str);
 
-    if (unwi_debug_level > 0)
+  if (unwi_debug_level > 0)
     {
-        setbuf (stdout, NULL);
-        setbuf (stderr, NULL);
+      setbuf (stdout, NULL);
+      setbuf (stderr, NULL);
     }
 #endif
-#endif
 
-    assert (sizeof (struct cursor) <= sizeof (unw_cursor_t));
+  assert (sizeof (struct cursor) <= sizeof (unw_cursor_t));
 }

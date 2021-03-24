@@ -1,6 +1,6 @@
 /* libunwind - a platform-independent unwind library
    Copyright (C) 2003-2004 Hewlett-Packard Co
-	Contributed by David Mosberger-Tang <davidm@hpl.hp.com>
+        Contributed by David Mosberger-Tang <davidm@hpl.hp.com>
 
 This file is part of libunwind.
 
@@ -25,19 +25,19 @@ WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.  */
 
 #include "unwind-internal.h"
 
-PROTECTED unsigned long
+unsigned long
 _Unwind_GetGR (struct _Unwind_Context *context, int index)
 {
-    unw_word_t val;
+  unw_word_t val;
 
-    if (index == UNW_REG_SP && context->end_of_stack)
-        /* _Unwind_ForcedUnwind() requires us to return a NULL
-           stack-pointer after reaching the end of the stack.  */
-        return 0;
+  if (index == UNW_REG_SP && context->end_of_stack)
+    /* _Unwind_ForcedUnwind() requires us to return a NULL
+       stack-pointer after reaching the end of the stack.  */
+    return 0;
 
-    unw_get_reg (&context->cursor, index, &val);
-    return val;
+  unw_get_reg (&context->cursor, index, &val);
+  return val;
 }
 
 unsigned long __libunwind_Unwind_GetGR (struct _Unwind_Context *, int)
-ALIAS (_Unwind_GetGR);
+     ALIAS (_Unwind_GetGR);

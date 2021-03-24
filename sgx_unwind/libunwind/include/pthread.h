@@ -28,30 +28,12 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
  */
-
-// file: pthread_compat.h
+// file: pthread.h
 //
-// This header file serves as an abstraction layer for compatibility.
 
-#ifndef PTHREAD_COMPAT_H
-#define PTHREAD_COMPAT_H
+#ifndef PTHREAD_H
+#define PTHREAD_H
 
-#include "sgx_spinlock.h"
-
-#define pthread_mutex_t           sgx_spinlock_t
-#define PTHREAD_MUTEX_INITIALIZER SGX_SPINLOCK_INITIALIZER
-
-#define pthread_mutex_lock        sgx_spin_lock
-#define pthread_mutex_unlock      sgx_spin_unlock
-
-#if 0
-#define pthread_mutex_init        sgx_thread_mutex_init
-
-#define pthread_cond_t            sgx_thread_cond_t
-#define PTHREAD_COND_INITIALIZER  SGX_THREAD_COND_INITIALIZER
-
-#define pthread_cond_wait    sgx_thread_cond_wait
-#define pthread_cond_signal  sgx_thread_cond_signal
-#endif
+#include "pthread_compat.h"
 
 #endif

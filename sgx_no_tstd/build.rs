@@ -31,6 +31,7 @@ fn main() {
 
 fn build_libunwind(host: &str, target: &str) -> Result<(), ()> {
     let filter = vec![
+        "m4",
         "config",
         "autom4te.cache",
         "Makefile.in",
@@ -70,7 +71,7 @@ fn build_libunwind(host: &str, target: &str) -> Result<(), ()> {
 
     run(Command::new("sh")
                 .current_dir(&native.out_dir)
-                .arg(native.src_dir.join("autogen-linux.sh").to_str().unwrap())
+                .arg(native.src_dir.join("autogen.sh").to_str().unwrap())
                 .arg(format!("--host={}", build_helper::gnu_target(target)))
                 .arg(format!("--build={}", build_helper::gnu_target(host)))
                 .env("CFLAGS", cflags));

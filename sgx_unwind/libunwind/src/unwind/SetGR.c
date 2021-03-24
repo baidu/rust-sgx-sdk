@@ -1,6 +1,6 @@
 /* libunwind - a platform-independent unwind library
    Copyright (C) 2003-2004 Hewlett-Packard Co
-	Contributed by David Mosberger-Tang <davidm@hpl.hp.com>
+        Contributed by David Mosberger-Tang <davidm@hpl.hp.com>
 
 This file is part of libunwind.
 
@@ -28,20 +28,20 @@ WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.  */
 #include "dwarf_i.h"
 #endif
 
-PROTECTED void
+void
 _Unwind_SetGR (struct _Unwind_Context *context, int index,
                unsigned long new_value)
 {
 #ifdef UNW_TARGET_X86
-    index = dwarf_to_unw_regnum(index);
+  index = dwarf_to_unw_regnum(index);
 #endif
-    unw_set_reg (&context->cursor, index, new_value);
+  unw_set_reg (&context->cursor, index, new_value);
 #ifdef UNW_TARGET_IA64
-    if (index >= UNW_IA64_GR && index <= UNW_IA64_GR + 127)
-        /* Clear the NaT bit. */
-        unw_set_reg (&context->cursor, UNW_IA64_NAT + (index - UNW_IA64_GR), 0);
+  if (index >= UNW_IA64_GR && index <= UNW_IA64_GR + 127)
+    /* Clear the NaT bit. */
+    unw_set_reg (&context->cursor, UNW_IA64_NAT + (index - UNW_IA64_GR), 0);
 #endif
 }
 
 void __libunwind_Unwind_SetGR (struct _Unwind_Context *, int, unsigned long)
-ALIAS (_Unwind_SetGR);
+     ALIAS (_Unwind_SetGR);

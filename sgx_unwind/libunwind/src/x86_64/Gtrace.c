@@ -37,15 +37,15 @@ WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.  */
 
 typedef struct
 {
-    unw_tdep_frame_t *frames;
-    size_t log_size;
-    size_t used;
-    size_t dtor_count;  /* Counts how many times our destructor has already
-			 been called. */
+  unw_tdep_frame_t *frames;
+  size_t log_size;
+  size_t used;
+  size_t dtor_count;  /* Counts how many times our destructor has already
+                         been called. */
 } unw_trace_cache_t;
 
 static const unw_tdep_frame_t empty_frame = { 0, UNW_X86_64_FRAME_OTHER, -1, -1, 0, -1, -1 };
-static pthread_mutex_t trace_init_lock = PTHREAD_MUTEX_INITIALIZER;
+static define_lock (trace_init_lock);
 static pthread_once_t trace_cache_once = PTHREAD_ONCE_INIT;
 static sig_atomic_t trace_cache_once_happen;
 static pthread_key_t trace_cache_key;
@@ -57,43 +57,43 @@ static __thread  int tls_cache_destroyed;
 static void
 trace_cache_free (void *arg)
 {
-    unw_trace_cache_t *cache = arg;
-    if (++cache->dtor_count < PTHREAD_DESTRUCTOR_ITERATIONS)
-    {
-        /* Not yet our turn to get destroyed. Re-install ourselves into the key. */
-        pthread_setspecific(trace_cache_key, cache);
-        Debug(5, "delayed freeing cache %p (%zx to go)\n", cache,
-              PTHREAD_DESTRUCTOR_ITERATIONS - cache->dtor_count);
-        return;
-    }
-    tls_cache_destroyed = 1;
-    tls_cache = NULL;
-    munmap (cache->frames, (1u << cache->log_size) * sizeof(unw_tdep_frame_t));
-    mempool_free (&trace_cache_pool, cache);
-    Debug(5, "freed cache %p\n", cache);
+  unw_trace_cache_t *cache = arg;
+  if (++cache->dtor_count < PTHREAD_DESTRUCTOR_ITERATIONS)
+  {
+    /* Not yet our turn to get destroyed. Re-install ourselves into the key. */
+    pthread_setspecific(trace_cache_key, cache);
+    Debug(5, "delayed freeing cache %p (%zx to go)\n", cache,
+          PTHREAD_DESTRUCTOR_ITERATIONS - cache->dtor_count);
+    return;
+  }
+  tls_cache_destroyed = 1;
+  tls_cache = NULL;
+  munmap (cache->frames, (1u << cache->log_size) * sizeof(unw_tdep_frame_t));
+  mempool_free (&trace_cache_pool, cache);
+  Debug(5, "freed cache %p\n", cache);
 }
 
 /* Initialise frame tracing for threaded use. */
 static void
 trace_cache_init_once (void)
 {
-    pthread_key_create (&trace_cache_key, &trace_cache_free);
-    mempool_init (&trace_cache_pool, sizeof (unw_trace_cache_t), 0);
-    trace_cache_once_happen = 1;
+  pthread_key_create (&trace_cache_key, &trace_cache_free);
+  mempool_init (&trace_cache_pool, sizeof (unw_trace_cache_t), 0);
+  trace_cache_once_happen = 1;
 }
 
 static unw_tdep_frame_t *
 trace_cache_buckets (size_t n)
 {
-    unw_tdep_frame_t *frames;
-    size_t i;
+  unw_tdep_frame_t *frames;
+  size_t i;
 
-    GET_MEMORY(frames, n * sizeof (unw_tdep_frame_t));
-    if (likely(frames != 0))
-        for (i = 0; i < n; ++i)
-            frames[i] = empty_frame;
+  GET_MEMORY(frames, n * sizeof (unw_tdep_frame_t));
+  if (likely(frames != NULL))
+    for (i = 0; i < n; ++i)
+      frames[i] = empty_frame;
 
-    return frames;
+  return frames;
 }
 
 /* Allocate and initialise hash table for frame cache lookups.
@@ -102,36 +102,36 @@ trace_cache_buckets (size_t n)
 static unw_trace_cache_t *
 trace_cache_create (void)
 {
-    unw_trace_cache_t *cache;
+  unw_trace_cache_t *cache;
 
-    if (tls_cache_destroyed)
-    {
-        /* The current thread is in the process of exiting. Don't recreate
-           cache, as we wouldn't have another chance to free it. */
-        Debug(5, "refusing to reallocate cache: "
-              "thread-locals are being deallocated\n");
-        return NULL;
-    }
+  if (tls_cache_destroyed)
+  {
+    /* The current thread is in the process of exiting. Don't recreate
+       cache, as we wouldn't have another chance to free it. */
+    Debug(5, "refusing to reallocate cache: "
+             "thread-locals are being deallocated\n");
+    return NULL;
+  }
 
-    if (! (cache = mempool_alloc(&trace_cache_pool)))
-    {
-        Debug(5, "failed to allocate cache\n");
-        return NULL;
-    }
+  if (! (cache = mempool_alloc(&trace_cache_pool)))
+  {
+    Debug(5, "failed to allocate cache\n");
+    return NULL;
+  }
 
-    if (! (cache->frames = trace_cache_buckets(1u << HASH_MIN_BITS)))
-    {
-        Debug(5, "failed to allocate buckets\n");
-        mempool_free(&trace_cache_pool, cache);
-        return NULL;
-    }
+  if (! (cache->frames = trace_cache_buckets(1u << HASH_MIN_BITS)))
+  {
+    Debug(5, "failed to allocate buckets\n");
+    mempool_free(&trace_cache_pool, cache);
+    return NULL;
+  }
 
-    cache->log_size = HASH_MIN_BITS;
-    cache->used = 0;
-    cache->dtor_count = 0;
-    tls_cache_destroyed = 0;  /* Paranoia: should already be 0. */
-    Debug(5, "allocated cache %p\n", cache);
-    return cache;
+  cache->log_size = HASH_MIN_BITS;
+  cache->used = 0;
+  cache->dtor_count = 0;
+  tls_cache_destroyed = 0;  /* Paranoia: should already be 0. */
+  Debug(5, "allocated cache %p\n", cache);
+  return cache;
 }
 
 /* Expand the hash table in the frame cache if possible. This always
@@ -139,67 +139,67 @@ trace_cache_create (void)
 static int
 trace_cache_expand (unw_trace_cache_t *cache)
 {
-    size_t old_size = (1u << cache->log_size);
-    size_t new_log_size = cache->log_size + 2;
-    unw_tdep_frame_t *new_frames = trace_cache_buckets (1u << new_log_size);
+  size_t old_size = (1u << cache->log_size);
+  size_t new_log_size = cache->log_size + 2;
+  unw_tdep_frame_t *new_frames = trace_cache_buckets (1u << new_log_size);
 
-    if (unlikely(! new_frames))
-    {
-        Debug(5, "failed to expand cache to 2^%lu buckets\n", new_log_size);
-        return -UNW_ENOMEM;
-    }
+  if (unlikely(! new_frames))
+  {
+    Debug(5, "failed to expand cache to 2^%lu buckets\n", new_log_size);
+    return -UNW_ENOMEM;
+  }
 
-    Debug(5, "expanded cache from 2^%lu to 2^%lu buckets\n", cache->log_size, new_log_size);
-    munmap(cache->frames, old_size * sizeof(unw_tdep_frame_t));
-    cache->frames = new_frames;
-    cache->log_size = new_log_size;
-    cache->used = 0;
-    return 0;
+  Debug(5, "expanded cache from 2^%lu to 2^%lu buckets\n", cache->log_size, new_log_size);
+  munmap(cache->frames, old_size * sizeof(unw_tdep_frame_t));
+  cache->frames = new_frames;
+  cache->log_size = new_log_size;
+  cache->used = 0;
+  return 0;
 }
 
 static unw_trace_cache_t *
 trace_cache_get_unthreaded (void)
 {
-    unw_trace_cache_t *cache;
-    intrmask_t saved_mask;
-    static unw_trace_cache_t *global_cache = 0;
-    lock_acquire (&trace_init_lock, saved_mask);
-    if (! global_cache)
-    {
-        mempool_init (&trace_cache_pool, sizeof (unw_trace_cache_t), 0);
-        global_cache = trace_cache_create ();
-    }
-    cache = global_cache;
-    lock_release (&trace_init_lock, saved_mask);
-    Debug(5, "using cache %p\n", cache);
-    return cache;
+  unw_trace_cache_t *cache;
+  intrmask_t saved_mask;
+  static unw_trace_cache_t *global_cache = NULL;
+  lock_acquire (&trace_init_lock, saved_mask);
+  if (! global_cache)
+  {
+    mempool_init (&trace_cache_pool, sizeof (unw_trace_cache_t), 0);
+    global_cache = trace_cache_create ();
+  }
+  cache = global_cache;
+  lock_release (&trace_init_lock, saved_mask);
+  Debug(5, "using cache %p\n", cache);
+  return cache;
 }
 
 /* Get the frame cache for the current thread. Create it if there is none. */
 static unw_trace_cache_t *
 trace_cache_get (void)
 {
-    unw_trace_cache_t *cache;
-    if (likely (pthread_once != 0))
+  unw_trace_cache_t *cache;
+  if (likely (pthread_once != NULL))
+  {
+    pthread_once(&trace_cache_once, &trace_cache_init_once);
+    if (!trace_cache_once_happen)
     {
-        pthread_once(&trace_cache_once, &trace_cache_init_once);
-        if (!trace_cache_once_happen)
-        {
-            return trace_cache_get_unthreaded();
-        }
-        if (! (cache = tls_cache))
-        {
-            cache = trace_cache_create();
-            pthread_setspecific(trace_cache_key, cache);
-            tls_cache = cache;
-        }
-        Debug(5, "using cache %p\n", cache);
-        return cache;
+      return trace_cache_get_unthreaded();
     }
-    else
+    if (! (cache = tls_cache))
     {
-        return trace_cache_get_unthreaded();
+      cache = trace_cache_create();
+      pthread_setspecific(trace_cache_key, cache);
+      tls_cache = cache;
     }
+    Debug(5, "using cache %p\n", cache);
+    return cache;
+  }
+  else
+  {
+    return trace_cache_get_unthreaded();
+  }
 }
 
 /* Initialise frame properties for address cache slot F at address
@@ -218,51 +218,51 @@ trace_init_addr (unw_tdep_frame_t *f,
                  unw_word_t rbp,
                  unw_word_t rsp)
 {
-    struct cursor *c = (struct cursor *) cursor;
-    struct dwarf_cursor *d = &c->dwarf;
-    int ret = -UNW_EINVAL;
+  struct cursor *c = (struct cursor *) cursor;
+  struct dwarf_cursor *d = &c->dwarf;
+  int ret = -UNW_EINVAL;
 
-    /* Initialise frame properties: unknown, not last. */
-    f->virtual_address = rip;
-    f->frame_type = UNW_X86_64_FRAME_OTHER;
-    f->last_frame = 0;
-    f->cfa_reg_rsp = -1;
-    f->cfa_reg_offset = 0;
-    f->rbp_cfa_offset = -1;
-    f->rsp_cfa_offset = -1;
+  /* Initialise frame properties: unknown, not last. */
+  f->virtual_address = rip;
+  f->frame_type = UNW_X86_64_FRAME_OTHER;
+  f->last_frame = 0;
+  f->cfa_reg_rsp = -1;
+  f->cfa_reg_offset = 0;
+  f->rbp_cfa_offset = -1;
+  f->rsp_cfa_offset = -1;
 
-    /* Reinitialise cursor to this instruction - but undo next/prev RIP
-       adjustment because unw_step will redo it - and force RIP, RBP
-       RSP into register locations (=~ ucontext we keep), then set
-       their desired values. Then perform the step. */
-    d->ip = rip + d->use_prev_instr;
-    d->cfa = cfa;
-    d->loc[UNW_X86_64_RIP] = DWARF_REG_LOC (d, UNW_X86_64_RIP);
-    d->loc[UNW_X86_64_RBP] = DWARF_REG_LOC (d, UNW_X86_64_RBP);
-    d->loc[UNW_X86_64_RSP] = DWARF_REG_LOC (d, UNW_X86_64_RSP);
-    c->frame_info = *f;
+  /* Reinitialise cursor to this instruction - but undo next/prev RIP
+     adjustment because unw_step will redo it - and force RIP, RBP
+     RSP into register locations (=~ ucontext we keep), then set
+     their desired values. Then perform the step. */
+  d->ip = rip + d->use_prev_instr;
+  d->cfa = cfa;
+  d->loc[UNW_X86_64_RIP] = DWARF_REG_LOC (d, UNW_X86_64_RIP);
+  d->loc[UNW_X86_64_RBP] = DWARF_REG_LOC (d, UNW_X86_64_RBP);
+  d->loc[UNW_X86_64_RSP] = DWARF_REG_LOC (d, UNW_X86_64_RSP);
+  c->frame_info = *f;
 
-    if (likely(dwarf_put (d, d->loc[UNW_X86_64_RIP], rip) >= 0)
-            && likely(dwarf_put (d, d->loc[UNW_X86_64_RBP], rbp) >= 0)
-            && likely(dwarf_put (d, d->loc[UNW_X86_64_RSP], rsp) >= 0)
-            && likely((ret = unw_step (cursor)) >= 0))
-        *f = c->frame_info;
+  if (likely(dwarf_put (d, d->loc[UNW_X86_64_RIP], rip) >= 0)
+      && likely(dwarf_put (d, d->loc[UNW_X86_64_RBP], rbp) >= 0)
+      && likely(dwarf_put (d, d->loc[UNW_X86_64_RSP], rsp) >= 0)
+      && likely((ret = unw_step (cursor)) >= 0))
+    *f = c->frame_info;
 
-    /* If unw_step() stopped voluntarily, remember that, even if it
-       otherwise could not determine anything useful.  This avoids
-       failing trace if we hit frames without unwind info, which is
-       common for the outermost frame (CRT stuff) on many systems.
-       This avoids failing trace in very common circumstances; failing
-       to unw_step() loop wouldn't produce any better result. */
-    if (ret == 0)
-        f->last_frame = -1;
+  /* If unw_step() stopped voluntarily, remember that, even if it
+     otherwise could not determine anything useful.  This avoids
+     failing trace if we hit frames without unwind info, which is
+     common for the outermost frame (CRT stuff) on many systems.
+     This avoids failing trace in very common circumstances; failing
+     to unw_step() loop wouldn't produce any better result. */
+  if (ret == 0)
+    f->last_frame = -1;
 
-    Debug (3, "frame va %lx type %d last %d cfa %s+%d rbp @ cfa%+d rsp @ cfa%+d\n",
-           f->virtual_address, f->frame_type, f->last_frame,
-           f->cfa_reg_rsp ? "rsp" : "rbp", f->cfa_reg_offset,
-           f->rbp_cfa_offset, f->rsp_cfa_offset);
+  Debug (3, "frame va %lx type %d last %d cfa %s+%d rbp @ cfa%+d rsp @ cfa%+d\n",
+         f->virtual_address, f->frame_type, f->last_frame,
+         f->cfa_reg_rsp ? "rsp" : "rbp", f->cfa_reg_offset,
+         f->rbp_cfa_offset, f->rsp_cfa_offset);
 
-    return f;
+  return f;
 }
 
 /* Look up and if necessary fill in frame attributes for address RIP
@@ -277,57 +277,57 @@ trace_lookup (unw_cursor_t *cursor,
               unw_word_t rbp,
               unw_word_t rsp)
 {
-    /* First look up for previously cached information using cache as
-       linear probing hash table with probe step of 1.  Majority of
-       lookups should be completed within few steps, but it is very
-       important the hash table does not fill up, or performance falls
-       off the cliff. */
-    uint64_t i, addr;
-    uint64_t cache_size = 1u << cache->log_size;
-    uint64_t slot = ((rip * 0x9e3779b97f4a7c16) >> 43) & (cache_size-1);
-    unw_tdep_frame_t *frame;
+  /* First look up for previously cached information using cache as
+     linear probing hash table with probe step of 1.  Majority of
+     lookups should be completed within few steps, but it is very
+     important the hash table does not fill up, or performance falls
+     off the cliff. */
+  uint64_t i, addr;
+  uint64_t cache_size = 1u << cache->log_size;
+  uint64_t slot = ((rip * 0x9e3779b97f4a7c16) >> 43) & (cache_size-1);
+  unw_tdep_frame_t *frame;
 
-    for (i = 0; i < 16; ++i)
+  for (i = 0; i < 16; ++i)
+  {
+    frame = &cache->frames[slot];
+    addr = frame->virtual_address;
+
+    /* Return if we found the address. */
+    if (likely(addr == rip))
     {
-        frame = &cache->frames[slot];
-        addr = frame->virtual_address;
-
-        /* Return if we found the address. */
-        if (likely(addr == rip))
-        {
-            Debug (4, "found address after %ld steps\n", i);
-            return frame;
-        }
-
-        /* If slot is empty, reuse it. */
-        if (likely(! addr))
-            break;
-
-        /* Linear probe to next slot candidate, step = 1. */
-        if (++slot >= cache_size)
-            slot -= cache_size;
+      Debug (4, "found address after %ld steps\n", i);
+      return frame;
     }
 
-    /* If we collided after 16 steps, or if the hash is more than half
-       full, force the hash to expand. Fill the selected slot, whether
-       it's free or collides. Note that hash expansion drops previous
-       contents; further lookups will refill the hash. */
-    Debug (4, "updating slot %lu after %ld steps, replacing 0x%lx\n", slot, i, addr);
-    if (unlikely(addr || cache->used >= cache_size / 2))
-    {
-        if (unlikely(trace_cache_expand (cache) < 0))
-            return NULL;
+    /* If slot is empty, reuse it. */
+    if (likely(! addr))
+      break;
 
-        cache_size = 1u << cache->log_size;
-        slot = ((rip * 0x9e3779b97f4a7c16) >> 43) & (cache_size-1);
-        frame = &cache->frames[slot];
-        addr = frame->virtual_address;
-    }
+    /* Linear probe to next slot candidate, step = 1. */
+    if (++slot >= cache_size)
+      slot -= cache_size;
+  }
 
-    if (! addr)
-        ++cache->used;
+  /* If we collided after 16 steps, or if the hash is more than half
+     full, force the hash to expand. Fill the selected slot, whether
+     it's free or collides. Note that hash expansion drops previous
+     contents; further lookups will refill the hash. */
+  Debug (4, "updating slot %lu after %ld steps, replacing 0x%lx\n", slot, i, addr);
+  if (unlikely(addr || cache->used >= cache_size / 2))
+  {
+    if (unlikely(trace_cache_expand (cache) < 0))
+      return NULL;
 
-    return trace_init_addr (frame, cursor, cfa, rip, rbp, rsp);
+    cache_size = 1u << cache->log_size;
+    slot = ((rip * 0x9e3779b97f4a7c16) >> 43) & (cache_size-1);
+    frame = &cache->frames[slot];
+    addr = frame->virtual_address;
+  }
+
+  if (! addr)
+    ++cache->used;
+
+  return trace_init_addr (frame, cursor, cfa, rip, rbp, rsp);
 }
 
 /* Fast stack backtrace for x86-64.
@@ -396,138 +396,156 @@ trace_lookup (unw_cursor_t *cursor,
 HIDDEN int
 tdep_trace (unw_cursor_t *cursor, void **buffer, int *size)
 {
-    struct cursor *c = (struct cursor *) cursor;
-    struct dwarf_cursor *d = &c->dwarf;
-    unw_trace_cache_t *cache;
-    unw_word_t rbp, rsp, rip, cfa;
-    int maxdepth = 0;
-    int depth = 0;
-    int ret;
+  struct cursor *c = (struct cursor *) cursor;
+  struct dwarf_cursor *d = &c->dwarf;
+  unw_trace_cache_t *cache;
+  unw_word_t rbp, rsp, rip, cfa;
+  int maxdepth = 0;
+  int depth = 0;
+  int ret;
 
-    /* Check input parametres. */
-    if (unlikely(! cursor || ! buffer || ! size || (maxdepth = *size) <= 0))
-        return -UNW_EINVAL;
+  /* Check input parametres. */
+  if (unlikely(! cursor || ! buffer || ! size || (maxdepth = *size) <= 0))
+    return -UNW_EINVAL;
 
-    Debug (1, "begin ip 0x%lx cfa 0x%lx\n", d->ip, d->cfa);
+  Debug (1, "begin ip 0x%lx cfa 0x%lx\n", d->ip, d->cfa);
 
-    /* Tell core dwarf routines to call back to us. */
-    d->stash_frames = 1;
+  /* Tell core dwarf routines to call back to us. */
+  d->stash_frames = 1;
 
-    /* Determine initial register values. These are direct access safe
-       because we know they come from the initial machine context. */
-    rip = d->ip;
-    rsp = cfa = d->cfa;
-    ACCESS_MEM_FAST(ret, 0, d, DWARF_GET_LOC(d->loc[UNW_X86_64_RBP]), rbp);
-    assert(ret == 0);
+  /* Determine initial register values. These are direct access safe
+     because we know they come from the initial machine context. */
+  rip = d->ip;
+  rsp = cfa = d->cfa;
+  ACCESS_MEM_FAST(ret, 0, d, DWARF_GET_LOC(d->loc[UNW_X86_64_RBP]), rbp);
+  assert(ret == 0);
 
-    /* Get frame cache. */
-    if (unlikely(! (cache = trace_cache_get())))
+  /* Get frame cache. */
+  if (unlikely(! (cache = trace_cache_get())))
+  {
+    Debug (1, "returning %d, cannot get trace cache\n", -UNW_ENOMEM);
+    *size = 0;
+    d->stash_frames = 0;
+    return -UNW_ENOMEM;
+  }
+
+  /* Trace the stack upwards, starting from current RIP.  Adjust
+     the RIP address for previous/next instruction as the main
+     unwinding logic would also do.  We undo this before calling
+     back into unw_step(). */
+  while (depth < maxdepth)
+  {
+    rip -= d->use_prev_instr;
+    Debug (2, "depth %d cfa 0x%lx rip 0x%lx rsp 0x%lx rbp 0x%lx\n",
+           depth, cfa, rip, rsp, rbp);
+
+    /* See if we have this address cached.  If not, evaluate enough of
+       the dwarf unwind information to fill the cache line data, or to
+       decide this frame cannot be handled in fast trace mode.  We
+       cache negative results too to prevent unnecessary dwarf parsing
+       for common failures. */
+    unw_tdep_frame_t *f = trace_lookup (cursor, cache, cfa, rip, rbp, rsp);
+
+    /* If we don't have information for this frame, give up. */
+    if (unlikely(! f))
     {
-        Debug (1, "returning %d, cannot get trace cache\n", -UNW_ENOMEM);
-        *size = 0;
-        d->stash_frames = 0;
-        return -UNW_ENOMEM;
+      ret = -UNW_ENOINFO;
+      break;
     }
 
-    /* Trace the stack upwards, starting from current RIP.  Adjust
-       the RIP address for previous/next instruction as the main
-       unwinding logic would also do.  We undo this before calling
-       back into unw_step(). */
-    while (depth < maxdepth)
+    Debug (3, "frame va %lx type %d last %d cfa %s+%d rbp @ cfa%+d rsp @ cfa%+d\n",
+           f->virtual_address, f->frame_type, f->last_frame,
+           f->cfa_reg_rsp ? "rsp" : "rbp", f->cfa_reg_offset,
+           f->rbp_cfa_offset, f->rsp_cfa_offset);
+
+    assert (f->virtual_address == rip);
+
+    /* Stop if this was the last frame.  In particular don't evaluate
+       new register values as it may not be safe - we don't normally
+       run with full validation on, and do not want to - and there's
+       enough bad unwind info floating around that we need to trust
+       what unw_step() previously said, in potentially bogus frames. */
+    if (f->last_frame)
+      break;
+
+    /* Evaluate CFA and registers for the next frame. */
+    switch (f->frame_type)
     {
-        rip -= d->use_prev_instr;
-        Debug (2, "depth %d cfa 0x%lx rip 0x%lx rsp 0x%lx rbp 0x%lx\n",
-               depth, cfa, rip, rsp, rbp);
+    case UNW_X86_64_FRAME_GUESSED:
+      /* Fall thru to standard processing after forcing validation. */
+      c->validate = 1;
 
-        /* See if we have this address cached.  If not, evaluate enough of
-           the dwarf unwind information to fill the cache line data, or to
-           decide this frame cannot be handled in fast trace mode.  We
-           cache negative results too to prevent unnecessary dwarf parsing
-           for common failures. */
-        unw_tdep_frame_t *f = trace_lookup (cursor, cache, cfa, rip, rbp, rsp);
+    case UNW_X86_64_FRAME_STANDARD:
+      /* Advance standard traceable frame. */
+      cfa = (f->cfa_reg_rsp ? rsp : rbp) + f->cfa_reg_offset;
+      ACCESS_MEM_FAST(ret, c->validate, d, cfa - 8, rip);
+      if (likely(ret >= 0) && likely(f->rbp_cfa_offset != -1))
+        ACCESS_MEM_FAST(ret, c->validate, d, cfa + f->rbp_cfa_offset, rbp);
 
-        /* If we don't have information for this frame, give up. */
-        if (unlikely(! f))
-        {
-            ret = -UNW_ENOINFO;
-            break;
-        }
+      /* Don't bother reading RSP from DWARF, CFA becomes new RSP. */
+      rsp = cfa;
 
-        Debug (3, "frame va %lx type %d last %d cfa %s+%d rbp @ cfa%+d rsp @ cfa%+d\n",
-               f->virtual_address, f->frame_type, f->last_frame,
-               f->cfa_reg_rsp ? "rsp" : "rbp", f->cfa_reg_offset,
-               f->rbp_cfa_offset, f->rsp_cfa_offset);
+      /* Next frame needs to back up for unwind info lookup. */
+      d->use_prev_instr = 1;
+      break;
 
-        assert (f->virtual_address == rip);
+    case UNW_X86_64_FRAME_SIGRETURN:
+      cfa = cfa + f->cfa_reg_offset; /* cfa now points to ucontext_t.  */
 
-        /* Stop if this was the last frame.  In particular don't evaluate
-           new register values as it may not be safe - we don't normally
-           run with full validation on, and do not want to - and there's
-           enough bad unwind info floating around that we need to trust
-           what unw_step() previously said, in potentially bogus frames. */
-        if (f->last_frame)
-            break;
+      ACCESS_MEM_FAST(ret, c->validate, d, cfa + UC_MCONTEXT_GREGS_RIP, rip);
+      if (likely(ret >= 0))
+        ACCESS_MEM_FAST(ret, c->validate, d, cfa + UC_MCONTEXT_GREGS_RBP, rbp);
+      if (likely(ret >= 0))
+        ACCESS_MEM_FAST(ret, c->validate, d, cfa + UC_MCONTEXT_GREGS_RSP, rsp);
 
-        /* Evaluate CFA and registers for the next frame. */
-        switch (f->frame_type)
-        {
-        case UNW_X86_64_FRAME_GUESSED:
-            /* Fall thru to standard processing after forcing validation. */
-            c->validate = 1;
+      /* Resume stack at signal restoration point. The stack is not
+         necessarily continuous here, especially with sigaltstack(). */
+      cfa = rsp;
 
-        case UNW_X86_64_FRAME_STANDARD:
-            /* Advance standard traceable frame. */
-            cfa = (f->cfa_reg_rsp ? rsp : rbp) + f->cfa_reg_offset;
-            ACCESS_MEM_FAST(ret, c->validate, d, cfa - 8, rip);
-            if (likely(ret >= 0) && likely(f->rbp_cfa_offset != -1))
-                ACCESS_MEM_FAST(ret, c->validate, d, cfa + f->rbp_cfa_offset, rbp);
+      /* Next frame should not back up. */
+      d->use_prev_instr = 0;
+      break;
 
-            /* Don't bother reading RSP from DWARF, CFA becomes new RSP. */
-            rsp = cfa;
+    case UNW_X86_64_FRAME_ALIGNED:
+      /* Address of RIP was pushed on the stack via a simple
+       * def_cfa_expr - result stack offset stored in cfa_reg_offset */
+      cfa = (f->cfa_reg_rsp ? rsp : rbp) + f->cfa_reg_offset;
+      ACCESS_MEM_FAST(ret, c->validate, d, cfa, cfa);
+      if (likely(ret >= 0))
+        ACCESS_MEM_FAST(ret, c->validate, d, cfa - 8, rip);
+      if (likely(ret >= 0))
+        ACCESS_MEM_FAST(ret, c->validate, d, rbp, rbp);
 
-            /* Next frame needs to back up for unwind info lookup. */
-            d->use_prev_instr = 1;
-            break;
+      /* Don't bother reading RSP from DWARF, CFA becomes new RSP. */
+      rsp = cfa;
 
-        case UNW_X86_64_FRAME_SIGRETURN:
-            cfa = cfa + f->cfa_reg_offset; /* cfa now points to ucontext_t.  */
+      /* Next frame needs to back up for unwind info lookup. */
+      d->use_prev_instr = 1;
 
-            ACCESS_MEM_FAST(ret, c->validate, d, cfa + UC_MCONTEXT_GREGS_RIP, rip);
-            if (likely(ret >= 0))
-                ACCESS_MEM_FAST(ret, c->validate, d, cfa + UC_MCONTEXT_GREGS_RBP, rbp);
-            if (likely(ret >= 0))
-                ACCESS_MEM_FAST(ret, c->validate, d, cfa + UC_MCONTEXT_GREGS_RSP, rsp);
+      break;
 
-            /* Resume stack at signal restoration point. The stack is not
-               necessarily continuous here, especially with sigaltstack(). */
-            cfa = rsp;
-
-            /* Next frame should not back up. */
-            d->use_prev_instr = 0;
-            break;
-
-        default:
-            /* We cannot trace through this frame, give up and tell the
-            caller we had to stop.  Data collected so far may still be
-             useful to the caller, so let it know how far we got.  */
-            ret = -UNW_ESTOPUNWIND;
-            break;
-        }
-
-        Debug (4, "new cfa 0x%lx rip 0x%lx rsp 0x%lx rbp 0x%lx\n",
-               cfa, rip, rsp, rbp);
-
-        /* If we failed or ended up somewhere bogus, stop. */
-        if (unlikely(ret < 0 || rip < 0x4000))
-            break;
-
-        /* Record this address in stack trace. We skipped the first address. */
-        buffer[depth++] = (void *) (rip - d->use_prev_instr);
+    default:
+      /* We cannot trace through this frame, give up and tell the
+         caller we had to stop.  Data collected so far may still be
+         useful to the caller, so let it know how far we got.  */
+      ret = -UNW_ESTOPUNWIND;
+      break;
     }
+
+    Debug (4, "new cfa 0x%lx rip 0x%lx rsp 0x%lx rbp 0x%lx\n",
+           cfa, rip, rsp, rbp);
+
+    /* If we failed or ended up somewhere bogus, stop. */
+    if (unlikely(ret < 0 || rip < 0x4000))
+      break;
+
+    /* Record this address in stack trace. We skipped the first address. */
+    buffer[depth++] = (void *) (rip - d->use_prev_instr);
+  }
 
 #if UNW_DEBUG
-    Debug (1, "returning %d, depth %d\n", ret, depth);
+  Debug (1, "returning %d, depth %d\n", ret, depth);
 #endif
-    *size = depth;
-    return ret;
+  *size = depth;
+  return ret;
 }

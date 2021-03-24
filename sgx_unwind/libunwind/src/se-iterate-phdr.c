@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2011-2019 Intel Corporation. All rights reserved.
+ * Copyright (C) 2011-2020 Intel Corporation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -37,7 +37,7 @@
 #endif
 #include <link.h>
 
-extern uint8_t __ImageBase;
+extern uint8_t  __ImageBase;
 
 /**
  * This function is commonly provided by glibc for application to walk
@@ -45,9 +45,9 @@ extern uint8_t __ImageBase;
  * the libunwind code can work correctly.
  */
 int dl_iterate_phdr(
-    int (*callback) (struct dl_phdr_info *info,
-                     size_t size, void *data),
-    void *data)
+        int (*callback) (struct dl_phdr_info *info,
+                         size_t size, void *data),
+        void *data)
 {
     struct dl_phdr_info info;
     ElfW(Ehdr)         *ehdr;

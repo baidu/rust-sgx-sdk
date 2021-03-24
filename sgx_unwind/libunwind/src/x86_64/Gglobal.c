@@ -1,6 +1,6 @@
 /* libunwind - a platform-independent unwind library
    Copyright (c) 2003, 2005 Hewlett-Packard Development Company, L.P.
-	Contributed by David Mosberger-Tang <davidm@hpl.hp.com>
+        Contributed by David Mosberger-Tang <davidm@hpl.hp.com>
 
    Modified for x86_64 by Max Asbock <masbock@us.ibm.com>
 
@@ -25,16 +25,17 @@ LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION
 OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
 WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.  */
 
+#include "config.h"
 #include "unwind_i.h"
 #include "dwarf_i.h"
 
-HIDDEN pthread_mutex_t x86_64_lock = PTHREAD_MUTEX_INITIALIZER;
-HIDDEN int tdep_needs_initialization = 1;
+HIDDEN define_lock (x86_64_lock);
+HIDDEN int tdep_init_done;
 
 /* See comments for svr4_dbx_register_map[] in gcc/config/i386/i386.c.  */
 
-HIDDEN uint8_t dwarf_to_unw_regnum_map[DWARF_NUM_PRESERVED_REGS] =
-{
+HIDDEN const uint8_t dwarf_to_unw_regnum_map[DWARF_NUM_PRESERVED_REGS] =
+  {
     UNW_X86_64_RAX,
     UNW_X86_64_RDX,
     UNW_X86_64_RCX,
@@ -70,34 +71,34 @@ HIDDEN uint8_t dwarf_to_unw_regnum_map[DWARF_NUM_PRESERVED_REGS] =
     UNW_X86_64_XMM14,
     UNW_X86_64_XMM15
 #endif
-};
+  };
 
 HIDDEN void
 tdep_init (void)
 {
-    intrmask_t saved_mask;
+  intrmask_t saved_mask;
 
 #if (!HAVE_SGX)
-    sigfillset (&unwi_full_mask);
+  sigfillset (&unwi_full_mask);
 #endif
 
-    lock_acquire (&x86_64_lock, saved_mask);
-    {
-        if (!tdep_needs_initialization)
-            /* another thread else beat us to it... */
-            goto out;
+  lock_acquire (&x86_64_lock, saved_mask);
+  {
+    if (tdep_init_done)
+      /* another thread else beat us to it... */
+      goto out;
 
-        mi_init ();
+    mi_init ();
 
-        dwarf_init ();
+    dwarf_init ();
 
-        tdep_init_mem_validate ();
+    tdep_init_mem_validate ();
 
 #ifndef UNW_REMOTE_ONLY
-        x86_64_local_addr_space_init ();
+    x86_64_local_addr_space_init ();
 #endif
-        tdep_needs_initialization = 0;	/* signal that we're initialized... */
-    }
-out:
-    lock_release (&x86_64_lock, saved_mask);
+    tdep_init_done = 1; /* signal that we're initialized... */
+  }
+ out:
+  lock_release (&x86_64_lock, saved_mask);
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2011-2019 Intel Corporation. All rights reserved.
+ * Copyright (C) 2011-2020 Intel Corporation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -51,13 +51,6 @@ int getpagesize(void)
     return SE_PAGE_SIZE;
 }
 
-int mincore(void *addr, size_t length, unsigned char *vec)
-{
-    assert(sgx_is_within_enclave(addr, length));
-
-    return 0;
-}
-
 char *strdup(const char *s)
 {
     size_t len = strlen(s) + 1;
@@ -88,7 +81,7 @@ int msync(void *addr, size_t length, int flags)
  * we need to build it with SE tlibc headers.
  */
 void __assert_fail (const char *__assertion, const char *__file,
-                    unsigned int __line, __const char *__function)
+        unsigned int __line, __const char *__function)
 {
     abort();
 }

@@ -1,6 +1,6 @@
 /* libunwind - a platform-independent unwind library
    Copyright (C) 2003-2004 Hewlett-Packard Co
-	Contributed by David Mosberger-Tang <davidm@hpl.hp.com>
+        Contributed by David Mosberger-Tang <davidm@hpl.hp.com>
 
 This file is part of libunwind.
 
@@ -25,18 +25,18 @@ WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.  */
 
 #include "unwind-internal.h"
 
-PROTECTED unsigned long
+unsigned long
 _Unwind_GetBSP (struct _Unwind_Context *context)
 {
 #ifdef UNW_TARGET_IA64
-    unw_word_t val;
+  unw_word_t val;
 
-    unw_get_reg (&context->cursor, UNW_IA64_BSP, &val);
-    return val;
+  unw_get_reg (&context->cursor, UNW_IA64_BSP, &val);
+  return val;
 #else
-    return 0;
+  return 0;
 #endif
 }
 
 unsigned long __libunwind_Unwind_GetBSP (struct _Unwind_Context *)
-ALIAS (_Unwind_GetBSP);
+     ALIAS (_Unwind_GetBSP);

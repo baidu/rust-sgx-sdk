@@ -26,7 +26,7 @@ WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.  */
 #include "unwind_i.h"
 
 static const char *regname[] =
-{
+  {
     "RAX",
     "RDX",
     "RCX",
@@ -44,13 +44,13 @@ static const char *regname[] =
     "R14",
     "R15",
     "RIP",
-};
+   };
 
-PROTECTED const char *
+const char *
 unw_regname (unw_regnum_t reg)
 {
-    if (reg < (unw_regnum_t) ARRAY_SIZE (regname))
-        return regname[reg];
-    else
-        return "???";
+  if (reg < (unw_regnum_t) ARRAY_SIZE (regname))
+    return regname[reg];
+  else
+    return "???";
 }

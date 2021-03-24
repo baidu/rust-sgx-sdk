@@ -1,6 +1,6 @@
 /* libunwind - a platform-independent unwind library
    Copyright (C) 2003-2004 Hewlett-Packard Co
-	Contributed by David Mosberger-Tang <davidm@hpl.hp.com>
+        Contributed by David Mosberger-Tang <davidm@hpl.hp.com>
 
 This file is part of libunwind.
 
@@ -37,13 +37,13 @@ WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.  */
 
 int
 setjmp (env)
-jmp_buf env;
+     jmp_buf env;
 {
-    void **wp = (void **) env;
+  void **wp = (void **) env;
 
-    /* this should work on most platforms, but may not be
-       performance-optimal; check the code! */
-    wp[JB_SP] = __builtin_frame_address (0);
-    wp[JB_RP] = (void *) __builtin_return_address (0);
-    return 0;
+  /* this should work on most platforms, but may not be
+     performance-optimal; check the code! */
+  wp[JB_SP] = __builtin_frame_address (0);
+  wp[JB_RP] = (void *) __builtin_return_address (0);
+  return 0;
 }

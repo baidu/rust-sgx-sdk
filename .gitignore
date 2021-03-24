@@ -33,6 +33,7 @@ bazel-testlogs
 
 #libunwind
 sgx_unwind/libunwind/INSTALL
+sgx_unwind/libunwind/m4/*
 sgx_unwind/libunwind/config/*
 sgx_unwind/libunwind/include/config.h.*
 sgx_unwind/libunwind/Makefile.in

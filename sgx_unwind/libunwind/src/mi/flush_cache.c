@@ -1,6 +1,6 @@
 /* libunwind - a platform-independent unwind library
    Copyright (C) 2002-2005 Hewlett-Packard Co
-	Contributed by David Mosberger-Tang <davidm@hpl.hp.com>
+        Contributed by David Mosberger-Tang <davidm@hpl.hp.com>
 
 This file is part of libunwind.
 
@@ -25,35 +25,35 @@ WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.  */
 
 #include "libunwind_i.h"
 
-PROTECTED void
+void
 unw_flush_cache (unw_addr_space_t as, unw_word_t lo, unw_word_t hi)
 {
 #if !UNW_TARGET_IA64
-    struct unw_debug_frame_list *w = as->debug_frames;
+  struct unw_debug_frame_list *w = as->debug_frames;
 #endif
 
-    /* clear dyn_info_list_addr cache: */
-    as->dyn_info_list_addr = 0;
+  /* clear dyn_info_list_addr cache: */
+  as->dyn_info_list_addr = 0;
 
 #if !UNW_TARGET_IA64
-    for (; w; w = w->next)
+  for (; w; w = w->next)
     {
-        if (w->index)
-            free (w->index);
-        free (w->debug_frame);
+      if (w->index)
+        free (w->index);
+      free (w->debug_frame);
     }
-    as->debug_frames = NULL;
+  as->debug_frames = NULL;
 #endif
 
-    /* This lets us flush caches lazily.  The implementation currently
-       ignores the flush range arguments (lo-hi).  This is OK because
-       unw_flush_cache() is allowed to flush more than the requested
-       range. */
+  /* This lets us flush caches lazily.  The implementation currently
+     ignores the flush range arguments (lo-hi).  This is OK because
+     unw_flush_cache() is allowed to flush more than the requested
+     range. */
 
-#ifdef HAVE_FETCH_AND_ADD1
-    fetch_and_add1 (&as->cache_generation);
+#ifdef HAVE_FETCH_AND_ADD
+  fetch_and_add1 (&as->cache_generation);
 #else
 # warning unw_flush_cache(): need a way to atomically increment an integer.
-    ++as->cache_generation;
+  ++as->cache_generation;
 #endif
 }

@@ -1,6 +1,6 @@
 /* libunwind - a platform-independent unwind library
    Copyright (C) 2002-2004 Hewlett-Packard Co
-	Contributed by David Mosberger-Tang <davidm@hpl.hp.com>
+        Contributed by David Mosberger-Tang <davidm@hpl.hp.com>
 
    Modified for x86_64 by Max Asbock <masbock@us.ibm.com>
 
@@ -36,17 +36,17 @@ extern "C" {
 #include <inttypes.h>
 #include <ucontext.h>
 
-#define UNW_TARGET		x86_64
-#define UNW_TARGET_X86_64	1
+#define UNW_TARGET              x86_64
+#define UNW_TARGET_X86_64       1
 
-#define _U_TDEP_QP_TRUE	0	/* see libunwind-dynamic.h  */
+#define _U_TDEP_QP_TRUE 0       /* see libunwind-dynamic.h  */
 
 /* This needs to be big enough to accommodate "struct cursor", while
    leaving some slack for future expansion.  Changing this value will
    require recompiling all users of this library.  Stack allocation is
    relatively cheap and unwind-state copying is relatively rare, so we
    want to err on making it rather too big than too small.  */
-#define UNW_TDEP_CURSOR_LEN	127
+#define UNW_TDEP_CURSOR_LEN     127
 
 typedef uint64_t unw_word_t;
 typedef int64_t unw_sword_t;
@@ -54,7 +54,7 @@ typedef int64_t unw_sword_t;
 typedef long double unw_tdep_fpreg_t;
 
 typedef enum
-{
+  {
     UNW_X86_64_RAX,
     UNW_X86_64_RDX,
     UNW_X86_64_RCX,
@@ -103,31 +103,33 @@ typedef enum
     UNW_TDEP_SP = UNW_X86_64_RSP,
     UNW_TDEP_BP = UNW_X86_64_RBP,
     UNW_TDEP_EH = UNW_X86_64_RAX
-}
+  }
 x86_64_regnum_t;
 
-#define UNW_TDEP_NUM_EH_REGS	2	/* XXX Not sure what this means */
+#define UNW_TDEP_NUM_EH_REGS    2       /* XXX Not sure what this means */
 
 typedef struct unw_tdep_save_loc
-{
+  {
     /* Additional target-dependent info on a save location.  */
-}
+    char unused;
+  }
 unw_tdep_save_loc_t;
 
 /* On x86_64, we can directly use ucontext_t as the unwind context.  */
 typedef ucontext_t unw_tdep_context_t;
 
 typedef struct
-{
+  {
     /* no x86-64-specific auxiliary proc-info */
-}
+    char unused;
+  }
 unw_tdep_proc_info_t;
 
 #include "libunwind-dynamic.h"
 #include "libunwind-common.h"
 
-#define unw_tdep_getcontext		UNW_ARCH_OBJ(getcontext)
-#define unw_tdep_is_fpreg		UNW_ARCH_OBJ(is_fpreg)
+#define unw_tdep_getcontext             UNW_ARCH_OBJ(getcontext)
+#define unw_tdep_is_fpreg               UNW_ARCH_OBJ(is_fpreg)
 
 extern int unw_tdep_getcontext (unw_tdep_context_t *);
 extern int unw_tdep_is_fpreg (int);

@@ -1,6 +1,6 @@
 /* libunwind - a platform-independent unwind library
    Copyright (C) 2003-2004 Hewlett-Packard Co
-	Contributed by David Mosberger-Tang <davidm@hpl.hp.com>
+        Contributed by David Mosberger-Tang <davidm@hpl.hp.com>
 
 This file is part of libunwind.
 
@@ -25,11 +25,11 @@ WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.  */
 
 #include "unwind-internal.h"
 
-PROTECTED unsigned long
+unsigned long
 _Unwind_GetTextRelBase (struct _Unwind_Context *context)
 {
-    return 0;
+  return 0;
 }
 
 unsigned long __libunwind_Unwind_GetTextRelBase (struct _Unwind_Context *)
-ALIAS (_Unwind_GetTextRelBase);
+     ALIAS (_Unwind_GetTextRelBase);

@@ -1,6 +1,6 @@
 /* libunwind - a platform-independent unwind library
    Copyright (C) 2001-2002 Hewlett-Packard Co
-	Contributed by David Mosberger-Tang <davidm@hpl.hp.com>
+        Contributed by David Mosberger-Tang <davidm@hpl.hp.com>
 
 This file is part of libunwind.
 
@@ -35,47 +35,47 @@ WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.  */
 static ALWAYS_INLINE int
 slow_backtrace (void **buffer, int size, unw_context_t *uc)
 {
-    unw_cursor_t cursor;
-    unw_word_t ip;
-    int n = 0;
+  unw_cursor_t cursor;
+  unw_word_t ip;
+  int n = 0;
 
-    if (unlikely (unw_init_local (&cursor, uc) < 0))
-        return 0;
+  if (unlikely (unw_init_local (&cursor, uc) < 0))
+    return 0;
 
-    while (unw_step (&cursor) > 0)
+  while (unw_step (&cursor) > 0)
     {
-        if (n >= size)
-            return n;
+      if (n >= size)
+        return n;
 
-        if (unw_get_reg (&cursor, UNW_REG_IP, &ip) < 0)
-            return n;
-        buffer[n++] = (void *) (uintptr_t) ip;
+      if (unw_get_reg (&cursor, UNW_REG_IP, &ip) < 0)
+        return n;
+      buffer[n++] = (void *) (uintptr_t) ip;
     }
-    return n;
+  return n;
 }
 
 int
 unw_backtrace (void **buffer, int size)
 {
-    unw_cursor_t cursor;
-    unw_context_t uc;
-    int n = size;
+  unw_cursor_t cursor;
+  unw_context_t uc;
+  int n = size;
 
-    tdep_getcontext_trace (&uc);
+  tdep_getcontext_trace (&uc);
 
-    if (unlikely (unw_init_local (&cursor, &uc) < 0))
-        return 0;
+  if (unlikely (unw_init_local (&cursor, &uc) < 0))
+    return 0;
 
-    if (unlikely (tdep_trace (&cursor, buffer, &n) < 0))
+  if (unlikely (tdep_trace (&cursor, buffer, &n) < 0))
     {
-        unw_getcontext (&uc);
-        return slow_backtrace (buffer, size, &uc);
+      unw_getcontext (&uc);
+      return slow_backtrace (buffer, size, &uc);
     }
 
-    return n;
+  return n;
 }
 
 extern int backtrace (void **buffer, int size)
-__attribute__((weak, alias("unw_backtrace")));
+  WEAK ALIAS(unw_backtrace);
 
 #endif /* !UNW_REMOTE_ONLY */
