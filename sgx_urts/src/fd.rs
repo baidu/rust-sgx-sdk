@@ -15,7 +15,9 @@
 // specific language governing permissions and limitations
 // under the License..
 
-use libc::{self, c_int, c_ulong, c_void, iovec, off64_t, size_t, ssize_t};
+use libc::{self, c_int, c_void, iovec, off64_t, size_t, ssize_t};
+#[cfg(not(target_env="musl"))]
+use libc::{c_ulong};
 use std::io::Error;
 
 #[no_mangle]
@@ -217,6 +219,23 @@ pub extern "C" fn u_fcntl_arg1_ocall(
     ret
 }
 
+#[cfg(all(target_env="musl", not(target_env="")))]
+#[no_mangle]
+pub extern "C" fn u_ioctl_arg0_ocall(error: * mut c_int,
+                                     fd: c_int,
+                                     request: c_int) -> c_int {
+    let mut errno = 0;
+    let ret = unsafe { libc::ioctl(fd, request) };
+    if ret < 0 {
+        errno = Error::last_os_error().raw_os_error().unwrap_or(0);
+    }
+    if !error.is_null() {
+        unsafe { *error = errno; }
+    }
+    ret
+}
+
+#[cfg(not(target_env="musl"))]
 #[no_mangle]
 pub extern "C" fn u_ioctl_arg0_ocall(error: *mut c_int, fd: c_int, request: c_int) -> c_int {
     let mut errno = 0;
@@ -232,6 +251,24 @@ pub extern "C" fn u_ioctl_arg0_ocall(error: *mut c_int, fd: c_int, request: c_in
     ret
 }
 
+#[cfg(all(target_env="musl", not(target_env="")))]
+#[no_mangle]
+pub extern "C" fn u_ioctl_arg1_ocall(error: * mut c_int,
+                                     fd: c_int,
+                                     request: c_int,
+                                     arg: * const c_int) -> c_int {
+    let mut errno = 0;
+    let ret = unsafe { libc::ioctl(fd, request, arg) };
+    if ret < 0 {
+        errno = Error::last_os_error().raw_os_error().unwrap_or(0);
+    }
+    if !error.is_null() {
+        unsafe { *error = errno; }
+    }
+    ret
+}
+
+#[cfg(not(target_env="musl"))]
 #[no_mangle]
 pub extern "C" fn u_ioctl_arg1_ocall(
     error: *mut c_int,
