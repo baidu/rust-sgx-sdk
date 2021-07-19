@@ -743,6 +743,8 @@ extern "C" {
     /* intel DCAP 1.4 */
     pub fn sgx_ql_get_root_ca_crl(pp_root_ca_crl: *mut *mut uint8_t, p_root_ca_cal_size: *mut uint16_t) -> sgx_quote3_error_t;
     pub fn sgx_ql_free_root_ca_crl(p_root_ca_crl: *const uint8_t) -> sgx_quote3_error_t;
+    /* intel DCAP 2.14 */
+    pub fn sgx_ql_set_logging_callback(logger: sgx_ql_logging_callback_t) -> sgx_quote3_error_t;
 }
 
 //#[link(name = "sgx_default_qcnl_wrapper")]

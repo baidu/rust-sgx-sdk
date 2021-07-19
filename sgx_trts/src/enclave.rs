@@ -57,6 +57,9 @@ pub struct global_data_t {
     pub layout_entry_num: u32,
     pub reserved: u32,
     pub layout_table: [layout_t; LAYOUT_ENTRY_NUM],
+    pub enclave_image_address: u64,
+    pub elrange_start_address: u64,
+    pub elrange_size: u64,
 }
 
 #[repr(C)]
