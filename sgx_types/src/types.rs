@@ -1259,6 +1259,18 @@ pub struct sgx_ql_qve_collateral_t {
     pub qe_identity_size: uint32_t,
 }
 
+/* intel DCAP 2.14 */
+impl_enum! {
+    #[repr(u32)]
+    #[derive(Copy, Clone, PartialEq, Eq, Debug)]
+    pub enum sgx_ql_log_level_t {
+        SGX_QL_LOG_ERROR  = 0,
+        SGX_QL_LOG_INFO   = 1,
+    }
+}
+
+pub type sgx_ql_logging_callback_t = extern "C" fn(level: sgx_ql_log_level_t, message: *const c_char);
+
 //
 // sgx_quote_3.h
 //

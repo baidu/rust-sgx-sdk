@@ -57,6 +57,9 @@ pub struct global_data_t {
     pub layout_entry_num: u32,
     pub reserved: u32,
     pub layout_table: [layout_t; LAYOUT_ENTRY_NUM],
+    pub enclave_image_address: u64,
+    pub elrange_start_address: u64,
+    pub elrange_size: u64,
 }
 
 #[repr(C)]
@@ -93,6 +96,8 @@ pub struct SgxGlobalData {
     eremove_tcs_num: u32,
     dyn_tcs_num: u32,
     max_tcs_num: u32,
+    elrange_base: usize,
+    elrange_size: usize,
 }
 
 impl Default for SgxGlobalData {
@@ -125,6 +130,8 @@ impl SgxGlobalData {
             eremove_tcs_num: eremove_num,
             dyn_tcs_num: dyn_num,
             max_tcs_num: rsgx_get_tcs_max_num(),
+            elrange_base: rsgx_get_elrange_base() as usize,
+            elrange_size: rsgx_get_elrange_size(),
         }
     }
 
@@ -242,6 +249,28 @@ impl SgxGlobalData {
         //} else {
         //    self.static_tcs_num + self.eremove_tcs_num
         //}
+    }
+
+    ///
+    /// elrange_base is to get enclave range base address.
+    ///
+    /// **Note**
+    ///
+    /// This API is only an experimental funtion.
+    ///
+    pub fn elrange_base(&self) -> usize {
+        self.elrange_base
+    }
+
+    ///
+    /// elrange_size is to get enclave range size.
+    ///
+    /// **Note**
+    ///
+    /// This API is only an experimental funtion.
+    ///
+    pub fn elrange_size(&self) -> usize {
+        self.elrange_size
     }
 }
 
@@ -617,4 +646,28 @@ pub fn rsgx_get_peak_heap_used() -> usize {
 #[inline]
 pub fn rsgx_get_peak_rsrv_mem_committed() -> usize {
     unsafe { g_peak_rsrv_mem_committed }
+}
+
+///
+/// rsgx_get_elrange_base is to get enclave range base address.
+///
+/// **Note**
+///
+/// This API is only an experimental funtion.
+///
+#[inline]
+pub fn rsgx_get_elrange_base() -> *const u8 {
+    unsafe { g_global_data.elrange_start_address as *const u8 }
+}
+
+///
+/// rsgx_get_elrange_size is to get enclave range size.
+///
+/// **Note**
+///
+/// This API is only an experimental funtion.
+///
+#[inline]
+pub fn rsgx_get_elrange_size() -> usize {
+    unsafe { g_global_data.elrange_size as usize }
 }

@@ -15,7 +15,7 @@ ADD 02_binutils.sh /root
 RUN bash /root/02_binutils.sh
 
 ENV SDK_DIST="INTEL_BUILT"
-ENV SDK_URL="https://download.01.org/intel-sgx/sgx-linux/2.12/distro/ubuntu18.04-server/sgx_linux_x64_sdk_2.12.100.3.bin"
+ENV SDK_URL="https://download.01.org/intel-sgx/sgx-linux/2.14/distro/ubuntu18.04-server/sgx_linux_x64_sdk_2.14.100.2.bin"
 #ENV SDK_DIST="SELF_BUILT"
 ADD 03_sdk.sh /root
 RUN bash /root/03_sdk.sh
@@ -23,8 +23,8 @@ RUN bash /root/03_sdk.sh
 # Sixth, PSW
 
 ENV CODENAME        bionic
-ENV VERSION         2.12.100.3-bionic1
-ENV DCAP_VERSION    1.9.100.3-bionic1
+ENV VERSION         2.14.100.2-bionic1
+ENV DCAP_VERSION    1.11.100.2-bionic1
 
 ADD 04_psw.sh /root
 RUN bash /root/04_psw.sh

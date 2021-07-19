@@ -2,7 +2,7 @@ source /opt/sgxsdk/environment && \
 cd /root && \
 git clone --recursive https://github.com/intel/linux-sgx && \
 cd linux-sgx && \
-git checkout sgx_2.11 && \
+git checkout sgx_2.14 && \
 ./download_prebuilt.sh && \
 make deb_local_repo && \
 cd linux/installer/deb && \

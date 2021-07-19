@@ -15,14 +15,14 @@ ADD 02_binutils.sh /root
 RUN bash /root/02_binutils.sh
 
 ENV SDK_DIST="INTEL_BUILT"
-ENV SDK_URL="https://download.01.org/intel-sgx/sgx-linux/2.12/distro/fedora31-server/sgx_linux_x64_sdk_2.12.100.3.bin"
+ENV SDK_URL="https://download.01.org/intel-sgx/sgx-linux/2.14/distro/fedora31-server/sgx_linux_x64_sdk_2.14.100.2.bin"
 #ENV SDK_DIST="SELF_BUILT"
 ADD 03_sdk.sh /root
 RUN bash /root/03_sdk.sh
 
 # Sixth, PSW
 
-ENV PSW_REPO=https://download.01.org/intel-sgx/sgx-linux/2.12/distro/fedora31-server/sgx_rpm_local_repo.tgz
+ENV PSW_REPO="https://download.01.org/intel-sgx/sgx-linux/2.14/distro/fedora31-server/sgx_rpm_local_repo.tgz"
 ADD 04_psw_rpm.sh /root
 RUN bash /root/04_psw_rpm.sh
 

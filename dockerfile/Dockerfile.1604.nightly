@@ -31,8 +31,8 @@ RUN bash /root/03_sdk.sh
 # Sixth, PSW
 
 ENV CODENAME        xenial
-ENV VERSION         2.12.100.3-xenial1
-ENV DCAP_VERSION    1.9.100.3-xenial1
+ENV VERSION         2.14.100.2-xenial1
+ENV DCAP_VERSION    1.11.100.2-xenial1
 
 ADD 04_psw.sh /root
 RUN bash /root/04_psw.sh

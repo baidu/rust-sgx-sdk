@@ -157,21 +157,27 @@ type si_flags_t = u64;
 
 impl_packed_struct! {
     pub struct layout_entry_t {
-        pub id :u16,
-        pub attributes :u16,
-        pub page_count :u32,
-        pub rva :u64,
-        pub content_size :u32,
-        pub content_offset :u32,
-        pub si_flags :si_flags_t,
+        pub id: u16,
+        pub attributes: u16,
+        pub page_count: u32,
+        pub rva: u64,
+        pub content_size: u32,
+        pub content_offset: u32,
+        pub si_flags: si_flags_t,
     }
 
     pub struct layout_group_t {
-        pub id :u16,
-        pub entry_count :u16,
-        pub load_times :u32,
-        pub load_step :u64,
-        pub reserved :[u32; 4],
+        pub id: u16,
+        pub entry_count: u16,
+        pub load_times: u32,
+        pub load_step: u64,
+        pub reserved: [u32; 4],
+    }
+
+    pub struct elrange_config_entry_t {
+        pub enclave_image_address: u64,
+        pub elrange_start_address: u64,
+        pub elrange_size: u64,
     }
 }
 
